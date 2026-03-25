@@ -3,9 +3,7 @@ const mongoose = require("mongoose")
 const cors = require("cors")
 const dotenv = require("dotenv")
 
-const { extract_details } = require("./controllers/linkedinController")
-const { Company } = require("./models/CompanyModel")
-
+const { runJob } = require("./controllers/updateController")
 dotenv.config()
 
 const app = express()
@@ -24,7 +22,16 @@ mongoose.connect("mongodb+srv://sage:sage@cluster0.vmi9jvv.mongodb.net/?appName=
 	console.log(`Error encountered ${e}`)
 })
 
-app.get('/api/v1/extract/company', extract_details)
+app.get('/api/v1/extract/company', async (req, res) => {
+	try {
+		const response = await runJob();
+		console.log(response)
+		res.send(response);
+	} catch (e) {
+		res.send(e)
+	}
+
+})
 app.listen(PORT, () => {
 	console.log(`Server running on port: ${PORT}`)
 })

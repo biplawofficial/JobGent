@@ -11,7 +11,7 @@ const OpeningsSchema = new mongoose.Schema({
     company_name: { type: String, required: true },
     role: { type: String, required: true },
     opening_url: { type: String, required: true },
-    time_posted: { type: String } // not required always because current verion of this code can break
+    time_posted: { type: Date } // not required always because current verion of this code can break
 }, { timestamps: true });
 
 const Companies = mongoose.model("Companies", CompaniesSchema);

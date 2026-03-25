@@ -1,7 +1,28 @@
 const { chromium } = require('playwright');
 const { Companies, Openings } = require("../models/CompanyModel")
 
-const extract_details = async (req, res) => {
+function parseLinkedInTime(timeStr) {
+    if (!timeStr) return new Date();
+    const now = Date.now();
+    const str = timeStr.toLowerCase();
+    
+    let multiplier = 0;
+    if (str.includes('minute') || str.includes('min')) multiplier = 60 * 1000;
+    else if (str.includes('hour') || str.includes('hr')) multiplier = 60 * 60 * 1000;
+    else if (str.includes('day')) multiplier = 24 * 60 * 60 * 1000;
+    else if (str.includes('week')) multiplier = 7 * 24 * 60 * 60 * 1000;
+    else if (str.includes('month')) multiplier = 30 * 24 * 60 * 60 * 1000;
+    else if (str.includes('year')) multiplier = 365 * 24 * 60 * 60 * 1000;
+    
+    const match = str.match(/\d+/);
+    if (match && multiplier) {
+        const val = parseInt(match[0], 10);
+        return new Date(now - val * multiplier);
+    }
+    return new Date(); // fallback
+}
+
+const extract_details = async () => {
     try {
         console.log('Starting LinkedIn Job Scraper...');
         const browserContext = await chromium.launchPersistentContext('./linkedin_user_data', {
@@ -22,7 +43,8 @@ const extract_details = async (req, res) => {
         }
 
         const jobs = await page.locator('.job-search-card').all();
-        let jobscount = 0
+        let jobscount = 0;
+        const newOpenings = [];
         for (const job of jobs) {
             if (jobscount > 50) break;
             try {
@@ -38,6 +60,9 @@ const extract_details = async (req, res) => {
 
                 console.log(time);
                 console.log(url);
+                
+                const timePostedTimestamp = parseLinkedInTime(time);
+                
                 jobscount++;
 
                 const companyDoc = await Companies.findOneAndUpdate(
@@ -45,24 +70,42 @@ const extract_details = async (req, res) => {
                     { $setOnInsert: { company_name: company } },
                     { upsert: true, returnDocument: 'after' }
                 );
-                const newOpening = new Openings({
-                    company: companyDoc._id,
+
+                const existingOpening = await Openings.findOne({
                     company_name: company,
-                    role: role,
-                    opening_url: url,
-                    time_posted: time
+                    role: role
                 });
-                await newOpening.save();
+
+                if (!existingOpening) {
+                    const newOpening = new Openings({
+                        company: companyDoc._id,
+                        company_name: company,
+                        role: role,
+                        opening_url: url,
+                        time_posted: timePostedTimestamp
+                    });
+                    await newOpening.save();
+                    
+                    newOpenings.push({
+                        company_name: company,
+                        role: role,
+                        opening_url: url,
+                        time_posted: timePostedTimestamp
+                    });
+                }
             } catch (err) {
                 console.error("Skipped a job due to error: ", err.message);
             }
         }
         await browserContext.close();
         console.log("Updated")
-        res.send("Names updated, check database for company names")
+        return {
+            message: "Names updated, check database for company names",
+            new_openings: newOpenings
+        };
     } catch (e) {
         console.log(e)
-        res.send(e)
+        return e
     }
 };
 

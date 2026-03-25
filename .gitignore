@@ -1,0 +1,5 @@
+/user_data_dir
+/node_modules
+/linkedin_user_data
+.env
+.env.local
