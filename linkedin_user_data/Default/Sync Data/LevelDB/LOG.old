@@ -1,3 +1,3 @@
-2026/03/26-02:00:00.708 c74f3 Reusing MANIFEST /Users/tom/workspace/job_automator/linkedin_user_data/Default/Sync Data/LevelDB/MANIFEST-000001
-2026/03/26-02:00:00.722 c74f3 Recovering log #3
-2026/03/26-02:00:00.722 c74f3 Reusing old log /Users/tom/workspace/job_automator/linkedin_user_data/Default/Sync Data/LevelDB/000003.log 
+2026/03/26-02:30:00.671 cd55f Reusing MANIFEST /Users/tom/workspace/job_automator/linkedin_user_data/Default/Sync Data/LevelDB/MANIFEST-000001
+2026/03/26-02:30:00.683 cd55f Recovering log #3
+2026/03/26-02:30:00.684 cd55f Reusing old log /Users/tom/workspace/job_automator/linkedin_user_data/Default/Sync Data/LevelDB/000003.log 
